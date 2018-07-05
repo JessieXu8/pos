@@ -87,6 +87,22 @@ describe('function findKinds() test', () => {
   });
 
 });
+describe('function findCount() test', () => {
 
 
 
+  it('it should return the right result', () => {
+
+    const kinds = findKinds(tags);
+
+    const items = findCount(tags,kinds);
+
+
+
+    const expectText = '[{"barcode":"ITEM000001","count":5},{"barcode":"ITEM000003","count":2.5},{"barcode":"ITEM000005","count":3}]';
+
+    expect(JSON.stringify(items)).toEqual(expectText);
+
+  });
+
+});
