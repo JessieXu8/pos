@@ -1,5 +1,4 @@
 'use strict';
-
 function printReceipt(tags){
     let sameItems =countNumByBarcode(tags);
     let detailItems=itemDetail(sameItems);
