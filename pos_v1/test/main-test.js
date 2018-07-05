@@ -145,3 +145,25 @@ describe('function getPromotion() test', () => {
   });
 
 });
+
+describe('function calculate() test', () => {
+
+  it('it should return the right result', () => {
+
+    const kinds = findKinds(tags);
+
+    const items = findCount(tags,kinds);
+
+    let itemList = findTable(items);
+
+    let receiptBase = getPromotion(itemList);
+
+    let obj = calculate(receiptBase);
+
+    const expectText = '{"itemList":[{"barcode":"ITEM000001","name":"雪碧","count":5,"unit":"瓶","price":3,"countAfterPromote":4,"subTotal":12},{"barcode":"ITEM000003","name":"荔枝","count":2.5,"unit":"斤","price":15,"countAfterPromote":2.5,"subTotal":37.5},{"barcode":"ITEM000005","name":"方便面","count":3,"unit":"袋","price":4.5,"countAfterPromote":2,"subTotal":9}],"reduce":7.5,"amount":58.5}';
+
+    expect(JSON.stringify(obj)).toEqual(expectText);
+
+  });
+
+});
