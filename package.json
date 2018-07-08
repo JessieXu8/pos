@@ -1,19 +1,24 @@
 {
-  "name": "pos",
+  "name": "gpst-js-basic-practice",
   "version": "1.0.0",
-  "description": "N/A",
-  "engines": {
-    "node": ">=6.0.0"
-  },
+  "description": "Powered by ThoughtWorks School",
+  "main": "app.js",
   "scripts": {
-    "lint": "eslint . -c twa-camp-2016 --no-eslintrc || true"
+    "start": "node app.js",
+    "test": "node run-tests.js"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tws-stack/gpst-js-basic-practice.git"
+  },
+  "author": "ThoughtWorks School",
+  "license": "GPL-3.0",
+  "bugs": {
+    "url": "https://github.com/tws-stack/gpst-js-basic-practice/issues"
+  },
+  "homepage": "https://school.thoughtworks.cn",
   "devDependencies": {
-    "eslint": "^3.0.1",
-    "eslint-config-twa-camp-2016": ">=0.2.1",
-    "eslint-plugin-extra-rules": "^0.6.1",
-    "eslint-plugin-node": "^2.0.0",
-    "eslint-plugin-spellcheck": "0.0.7",
-    "eslint-plugin-xo": "^0.5.1"
+    "jasmine": "^3.1.0",
+    "jasmine-console-reporter": "^3.0.2"
   }
 }
