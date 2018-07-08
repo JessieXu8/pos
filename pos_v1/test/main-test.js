@@ -1,169 +1,198 @@
 'use strict';
+describe('total test', () => {
 
-
+  it('should print text', () => {
 
     const tags = [
-
       'ITEM000001',
-
       'ITEM000001',
-
       'ITEM000001',
-
       'ITEM000001',
-
       'ITEM000001',
-
       'ITEM000003-2.5',
-
       'ITEM000005',
-
       'ITEM000005-2',
-
     ];
-
-
-
-describe('pos test', () => {
-
-
-
-  it('it should print text', () => {
-
-
 
     spyOn(console, 'log');
 
-
-
     printReceipt(tags);
 
-
-
     const expectText = `***<没钱赚商店>收据***
-
 名称：雪碧，数量：5瓶，单价：3.00(元)，小计：12.00(元)
-
 名称：荔枝，数量：2.5斤，单价：15.00(元)，小计：37.50(元)
-
 名称：方便面，数量：3袋，单价：4.50(元)，小计：9.00(元)
-
 ----------------------
-
 总计：58.50(元)
-
 节省：7.50(元)
-
 **********************`;
 
-
-
     expect(console.log).toHaveBeenCalledWith(expectText);
-
   });
-
 });
 
+describe('unit test', () => {
 
+  it('unit test of splitBarcodeAndAmounts()', () => {
 
-describe('function findKinds() test', () => {
+    const tags = [
+      'ITEM000001',
+      'ITEM000001',
+      'ITEM000001',
+      'ITEM000001',
+      'ITEM000001',
+      'ITEM000003-2.5',
+      'ITEM000005',
+      'ITEM000005-2',
+    ];
 
+    const splitBarcode = splitBarcodeAndAmounts(tags);
 
-
-  it('it should return the right result', () => {
-
-
-
-    const buy_items = findKinds(tags);
-
-    //console.info(buy_items);
-
-    const temp = Array.from(buy_items)
-
-    const expectText = '["ITEM000001","ITEM000003","ITEM000005"]';
-
-    expect(JSON.stringify(temp)).toEqual(expectText);
-
-  });
-
-});
-describe('function findCount() test', () => {
-
-
-
-  it('it should return the right result', () => {
-
-    const kinds = findKinds(tags);
-
-    const items = findCount(tags,kinds);
-
-
-
-    const expectText = '[{"barcode":"ITEM000001","count":5},{"barcode":"ITEM000003","count":2.5},{"barcode":"ITEM000005","count":3}]';
-
-    expect(JSON.stringify(items)).toEqual(expectText);
+    let result=JSON.stringify([
+      {"barcode":"ITEM000001","goodsNum":1},
+      {"barcode":"ITEM000001","goodsNum":1},
+			{"barcode":"ITEM000001","goodsNum":1},
+			{"barcode":"ITEM000001","goodsNum":1},
+			{"barcode":"ITEM000001","goodsNum":1},
+			{"barcode":"ITEM000003","goodsNum":2.5},
+      {"barcode":"ITEM000005","goodsNum":1},
+      {"barcode":"ITEM000005","goodsNum":2}
+    ]);
+    expect(JSON.stringify(splitBarcode)).toBe(result)
 
   });
-
 });
 
-describe('function findTable() test', () => {
+describe('unit test', () => {
 
-  it('it should return the right result', () => {
+  it('unit test of calculateGoodsNumByBarcode()', () => {
 
-    const kinds = findKinds(tags);
+    const tags = [
+      'ITEM000001',
+      'ITEM000001',
+      'ITEM000001',
+      'ITEM000001',
+      'ITEM000001',
+      'ITEM000003-2.5',
+      'ITEM000005',
+      'ITEM000005-2',
+    ];
+    const splitBarcode=splitBarcodeAndAmounts(tags)
+    const calculateGoodsCount = calculateGoodsNumByBarcode(splitBarcode);
 
-    const items = findCount(tags,kinds);
-
-    let itemList = findTable(items);
-
-    const expectText = '[{"barcode":"ITEM000001","name":"雪碧","count":5,"unit":"瓶","price":3},{"barcode":"ITEM000003","name":"荔枝","count":2.5,"unit":"斤","price":15},{"barcode":"ITEM000005","name":"方便面","count":3,"unit":"袋","price":4.5}]';
-
-    expect(JSON.stringify(itemList)).toEqual(expectText);
-
-  });
-
-});
-describe('function getPromotion() test', () => {
-
-
-
-  it('it should return the right result', () => {
-
-    const kinds = findKinds(tags);
-
-    const items = findCount(tags,kinds);
-
-    let itemList = findTable(items);
-
-    let receiptBase = getPromotion(itemList);
-
-    const expectText = '[{"barcode":"ITEM000001","name":"雪碧","count":5,"unit":"瓶","price":3,"countAfterPromote":4,"subTotal":12},{"barcode":"ITEM000003","name":"荔枝","count":2.5,"unit":"斤","price":15,"countAfterPromote":2.5,"subTotal":37.5},{"barcode":"ITEM000005","name":"方便面","count":3,"unit":"袋","price":4.5,"countAfterPromote":2,"subTotal":9}]';
-
-    expect(JSON.stringify(receiptBase)).toEqual(expectText);
+    let result=JSON.stringify([
+      {"barcode":"ITEM000001","goodsNum":5},
+      {"barcode":"ITEM000003","goodsNum":2.5},
+      {"barcode":"ITEM000005","goodsNum":3}
+    ]);
+    expect(JSON.stringify(calculateGoodsCount)).toBe(result)
 
   });
-
 });
 
-describe('function calculate() test', () => {
+describe('unit test', () => {
 
-  it('it should return the right result', () => {
+  it('unit test of addShoppingDetailsWithSubtotal()', () => {
 
-    const kinds = findKinds(tags);
+    const tags = [
+      'ITEM000001',
+      'ITEM000001',
+      'ITEM000001',
+      'ITEM000001',
+      'ITEM000001',
+      'ITEM000003-2.5',
+      'ITEM000005',
+      'ITEM000005-2',
+    ];
+    const splitBarcode=splitBarcodeAndAmounts(tags)
+    const calculateGoodsCount = calculateGoodsNumByBarcode(splitBarcode);
+    const shoppingDetails = addShoppingDetailsWithSubtotal(calculateGoodsCount,loadAllItems());
 
-    const items = findCount(tags,kinds);
-
-    let itemList = findTable(items);
-
-    let receiptBase = getPromotion(itemList);
-
-    let obj = calculate(receiptBase);
-
-    const expectText = '{"itemList":[{"barcode":"ITEM000001","name":"雪碧","count":5,"unit":"瓶","price":3,"countAfterPromote":4,"subTotal":12},{"barcode":"ITEM000003","name":"荔枝","count":2.5,"unit":"斤","price":15,"countAfterPromote":2.5,"subTotal":37.5},{"barcode":"ITEM000005","name":"方便面","count":3,"unit":"袋","price":4.5,"countAfterPromote":2,"subTotal":9}],"reduce":7.5,"amount":58.5}';
-
-    expect(JSON.stringify(obj)).toEqual(expectText);
-
+    let result=JSON.stringify([
+      {"barcode":"ITEM000001","name":"雪碧","count":5,"price":3,"unit":"瓶","subTotal":15},
+      {"barcode":"ITEM000003","name":"荔枝","count":2.5,"price":15,"unit":"斤","subTotal":37.5},
+      {"barcode":"ITEM000005","name":"方便面","count":3,"price":4.5,"unit":"袋","subTotal":13.5}
+    ]);
+    expect(JSON.stringify(shoppingDetails)).toBe(result)
   });
+});
 
+describe('unit test', () => {
+
+  it('unit test of calculateDiscount()', () => {
+
+    const tags = [
+      'ITEM000001',
+      'ITEM000001',
+      'ITEM000001',
+      'ITEM000001',
+      'ITEM000001',
+      'ITEM000003-2.5',
+      'ITEM000005',
+      'ITEM000005-2',
+    ];
+    const splitBarcode=splitBarcodeAndAmounts(tags)
+    const calculateGoodsCount = calculateGoodsNumByBarcode(splitBarcode);
+    const shoppingDetails = addShoppingDetailsWithSubtotal(calculateGoodsCount,loadAllItems());
+    let discount=calculateDiscount(shoppingDetails,loadPromotions());
+    let result=JSON.stringify('7.50');
+    expect(JSON.stringify(discount.toFixed(2))).toBe(result)
+  });
+});
+
+describe('unit test', () => {
+
+  it('unit test of calculateTotal()', () => {
+
+    const tags = [
+      'ITEM000001',
+      'ITEM000001',
+      'ITEM000001',
+      'ITEM000001',
+      'ITEM000001',
+      'ITEM000003-2.5',
+      'ITEM000005',
+      'ITEM000005-2',
+    ];
+    const splitBarcode=splitBarcodeAndAmounts(tags)
+    const calculateGoodsCount = calculateGoodsNumByBarcode(splitBarcode);
+    const shoppingDetails = addShoppingDetailsWithSubtotal(calculateGoodsCount,loadAllItems());
+    let discount=calculateDiscount(shoppingDetails,loadPromotions());
+    let total=calculateTotal(shoppingDetails);
+    let result=JSON.stringify('58.50');
+    expect(JSON.stringify(total.toFixed(2))).toBe(result)
+  });
+});
+
+describe('unit test', () => {
+
+  it('unit test of generateReceipt()', () => {
+
+    const tags = [
+      'ITEM000001',
+      'ITEM000001',
+      'ITEM000001',
+      'ITEM000001',
+      'ITEM000001',
+      'ITEM000003-2.5',
+      'ITEM000005',
+      'ITEM000005-2',
+    ];
+    const splitBarcode=splitBarcodeAndAmounts(tags)
+    const calculateGoodsCount = calculateGoodsNumByBarcode(splitBarcode);
+    const shoppingDetails = addShoppingDetailsWithSubtotal(calculateGoodsCount,loadAllItems());
+    let discount=calculateDiscount(shoppingDetails,loadPromotions());
+    let total=calculateTotal(shoppingDetails);
+    let str=generateReceipt(shoppingDetails,discount,total);
+
+    let result=`***<没钱赚商店>收据***
+名称：雪碧，数量：5瓶，单价：3.00(元)，小计：12.00(元)
+名称：荔枝，数量：2.5斤，单价：15.00(元)，小计：37.50(元)
+名称：方便面，数量：3袋，单价：4.50(元)，小计：9.00(元)
+----------------------
+总计：58.50(元)
+节省：7.50(元)
+**********************`;
+    expect(str).toBe(result);
+  });
 });

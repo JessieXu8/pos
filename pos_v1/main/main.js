@@ -1,95 +1,104 @@
 'use strict';
 function printReceipt(tags){
-    let sameItems =countNumByBarcode(tags);
-    let detailItems=itemDetail(sameItems);
-    let detailItemsForDis= discount(detailItems);
-    console.log(print(detailItemsForDis));
-};
-
-function countNumByBarcode(collection) {
-    let map = new Map();
-    // 遍历集合中所有字符串
-    for(let i=0;i<collection.length;i++){
-      // 判断字符串， 如果不含有‘-’，直接做统计，否则做特殊处理统计
-      if(collection[i].indexOf('-') == -1) {
-        let ele = collection[i];
-        // 判断是否已有存在的key
-        if(!map.has(ele)) {
-          map.set(ele, 0);
+    const splitBarcode=splitBarcodeAndAmounts(tags);
+    const calculateGoodsCount = calculateGoodsNumByBarcode(splitBarcode);
+    const shoppingDetails = addShoppingDetailsWithSubtotal(calculateGoodsCount,loadAllItems());
+    let discount=calculateDiscount(shoppingDetails,loadPromotions());
+    let total=calculateTotal(shoppingDetails);
+    let str=generateReceipt(shoppingDetails,discount,total);
+    console.log(str);
+  }
+  
+  /*将商品条码分割成{barcode: xx , amounts: xx}格式*/
+  function splitBarcodeAndAmounts(tags) {
+    let formatByNum=[];
+    for (let i of tags){
+      let formatItemNum={};
+      if (i.indexOf('-')!==-1){
+        
+        let div=i.split('-');
+        formatItemNum.barcode=div[0];
+        formatItemNum.goodsNum=parseFloat(div[1]);
+      }else{
+        formatItemNum.barcode=i;
+        formatItemNum.goodsNum=1;
+      }
+      formatByNum.push(formatItemNum);
+    }
+    return formatByNum;
+  }
+  /*将商品条码按照数量进行统计*/
+  function calculateGoodsNumByBarcode(splitBarcode){
+    let s=new Set();//去重
+    const calculateGoodsCounts=[];
+    for (let splitBarcodeObj of splitBarcode){
+      if(s.has(splitBarcodeObj.barcode)){//如果已经有这个条码了
+        for(let i of calculateGoodsCounts){
+          if(splitBarcodeObj.barcode === i.barcode){
+            i.goodsNum+=splitBarcodeObj.goodsNum;
+          }
         }
-        // 取出value加一
-        map.set(ele,map.get(ele) + 1);
-      } else {
-        // 取‘-’前面的字符串作为key
-        let ele = collection[i].substring(0,collection[i].indexOf('-'));
-        if(!map.has(ele)) {
-          map.set(ele, 0);
-        }
-        // 取字符串中的数字并做类型转换
-        let nums= Number(collection[i].substring(collection[i].indexOf('-')+1));
-        map.set(ele,map.get(ele) + nums);
+      }else{
+        s.add(splitBarcodeObj.barcode);
+        calculateGoodsCounts.push(splitBarcodeObj);
       }
     }
-    let sameItems=[];
-    map.forEach(function(value,key){
-      sameItems.push({
-        barcode:key,
-        goodsNum:value
-      });
-    })
-  return sameItems;
-}
-
-function itemDetail(sameItems){
-    let detailItems=[];
-    let wholeItems=loadAllItems();
-    for(let i=0;i<sameItems.length;i++){
-        for(let j=0;j<wholeItems.length;j++){
-            if(sameItems[i].barcode===wholeItems[j].barcode){
-                    detailItems.push({ 
-                                    barcode:sameItems[i].barcode, 
-                                    name:wholeItems[j].name,
-                                    unit:wholeItems[j].unit,
-                                    price:wholeItems[j].price,
-                                    goodsNum:sameItems[i].goodsNum,
-                                    subtotal:sameItems[i].goodsNum*wholeItems[j].price})
-                 }
+    return calculateGoodsCounts;
+  }
+  
+  /*购物详细信息小计*/
+  function addShoppingDetailsWithSubtotal(calculateGoodsCount,allItems){
+    const shoppingDetails=[];
+    for (let calculateObj of calculateGoodsCount) {
+      for (let itemDetail of allItems){
+        if(calculateObj.barcode === itemDetail.barcode){
+          shoppingDetails.push({
+            "barcode":itemDetail.barcode,
+            "name":itemDetail.name,
+            "count":calculateObj.goodsNum,
+            "price":itemDetail.price,
+            "unit":itemDetail.unit,
+            "subTotal":parseFloat(itemDetail.price)*calculateObj.goodsNum
+          });
         }
+      }
     }
-    return detailItems;
-}
-
-function discount(detailItems){
-    let discountItem=loadPromotions();
+    return shoppingDetails;
+  }
+  
+  /*计算折扣*/
+  function calculateDiscount(shoppingDetails,promotions){
     let discount=0;
-    for(let i=0;i< discountItem[0].barcodes.length;i++){
-        for(let j=0; j<detailItems.length;j++){
-            if(discountItem[0].barcodes[i]===detailItems[j].barcode){
-                if(parseInt(detailItems[j].goodsNum/2)!=0){
-                    detailItems[j].subtotal-=detailItems[j].price;
-                    discount+=detailItems[j].price;
-                }
-            }
+    let promotionMessage=promotions[0];
+    for (let shoppingDetailsObj of shoppingDetails){
+      for (let barcode of promotionMessage.barcodes){
+        if(shoppingDetailsObj.barcode === barcode) {
+          shoppingDetailsObj.subTotal-=shoppingDetailsObj.price;
+          discount+=shoppingDetailsObj.price;
         }
-        
+      }
     }
-    detailItems.push({discou:discount});
-    return detailItems;
-}
-
-function print(detailItemsForDis){
-    let sum=0;
-    let title="***<没钱赚商店>收据***\n";
-    let content="";
-    for(let i=0;i<detailItemsForDis.length-1;i++){
-        sum+=detailItemsForDis[i].subtotal;
-        let price=detailItemsForDis[i].price.toFixed(2);//设置精度
-
-        content+="名称："+detailItemsForDis[i].name+'，'+'数量：'+detailItemsForDis[i].goodsNum+detailItemsForDis[i].unit+'，' +
-                 '单价：'+price+'(元)，'+'小计：'+detailItemsForDis[i].subtotal.toFixed(2)+'(元)\n';
+    return discount;
+  }
+  
+  /*计算总计*/
+  function calculateTotal(shoppingDetails){
+    let total=0;
+    for(let shoppingDetailsObj of shoppingDetails){
+      total+=shoppingDetailsObj.subTotal;
     }
-
-    let total='----------------------\n总计：'+sum.toFixed(2)+'(元)'+'\n';
-    let subtotal='节省：'+detailItemsForDis[3].discou.toFixed(2)+'(元)'+'\n**********************';
-    return title+content+total+subtotal;
-}
+    return total;
+  }
+  /*生成订单详情*/
+  function generateReceipt(shoppingDetails,discount,total){
+    let goodsDetails="";
+    for (let item of shoppingDetails){
+      goodsDetails += `\n名称：${item.name}，数量：${item.count}${item.unit}，单价：${item.price.toFixed(2)}(元)，小计：${item.subTotal.toFixed(2)}(元)`;
+    }
+    let str=`***<没钱赚商店>收据***${goodsDetails}
+----------------------
+总计：${total.toFixed(2)}(元)
+节省：${discount.toFixed(2)}(元)
+**********************`;
+    return str;
+  }
